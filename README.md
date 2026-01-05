@@ -150,6 +150,14 @@ Just talk to Claude naturally:
 
 ---
 
+ ## Support
+
+  If this helped you, consider supporting my work ☕
+
+  [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20Me-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/maii983083)
+
+---
+
 ## Related
 
 - [The Labyrinth](https://github.com/maryfellowes/The-Labyrinth-Open-Source) - AI companion frameworks and tools
