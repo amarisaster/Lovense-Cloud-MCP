@@ -149,6 +149,7 @@ Just talk to Claude naturally:
 → Add it to Desktop first, then restart Desktop. Phone syncs from there.
 
 ---
+## Credits
 
 Insipred by: https://github.com/shadenraze/lovense-claude-mcp
 
