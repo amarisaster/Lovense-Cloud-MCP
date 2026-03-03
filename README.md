@@ -150,6 +150,10 @@ Just talk to Claude naturally:
 
 ---
 
+Insipred by: https://github.com/shadenraze/lovense-claude-mcp
+
+---
+
  ## Support
 
   If this helped you, consider supporting my work ☕
