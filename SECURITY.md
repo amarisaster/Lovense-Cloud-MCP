@@ -10,6 +10,22 @@ This MCP controls physical devices used in intimate contexts. Unauthorized acces
 
 ---
 
+## 🔒 REQUIRED: Set an Access Key
+
+**The `/mcp`, `/sse`, and `/api/*` endpoints control your device. Set the `MCP_KEY` secret or they are open to anyone who learns your worker URL** — and worker URLs leak easily (screenshots, chat logs, transcripts). Without the key, someone with the URL can drive your toy using the credentials your worker already holds; no Lovense login required on their end.
+
+```bash
+wrangler secret put MCP_KEY   # any long random string
+```
+
+Then send it on every request as either:
+- `Authorization: Bearer <MCP_KEY>`  (MCP registration + REST), or
+- `?k=<MCP_KEY>` / `?key=<MCP_KEY>`  (for clients that can't set headers)
+
+> **Migration note:** the gate is enforced *only when `MCP_KEY` is set*, so pulling this repo won't lock you out before you configure it. But that also means **an unset key = an open device.** Set it, and update your client to send it, in the same change — or a live session could get locked out the moment you set it. `/health` stays open (no key needed) for uptime checks.
+
+---
+
 ## 🔑 Key Security Features
 
 ### Your Deployment, Your Devices
@@ -82,7 +98,7 @@ If you suspect any credential exposure:
 - ❌ Store usage history or activity logs
 - ❌ Share data with third parties
 - ❌ Send analytics or telemetry
-- ❌ Access your devices without your explicit command
+- ❌ Access your devices without your explicit command — **provided `MCP_KEY` is set** (see above; an unset key leaves the endpoints open)
 - ❌ Maintain persistent connections when not in use
 
 ---

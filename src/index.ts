@@ -16,6 +16,9 @@ interface Env {
   LOVENSE_CLOUD: DurableObjectNamespace<LovenseCloud>;
   LOVENSE_TOKEN: string;
   LOVENSE_UID: string;
+  // Optional access key. When set, every endpoint except /health requires it
+  // (Bearer header or ?k=/?key=). Unset = open (dev). Set it in production.
+  MCP_KEY?: string;
 }
 
 // Helper to send commands to Lovense API
@@ -274,6 +277,15 @@ async function getQrCode(env: Env) {
   return response.json();
 }
 
+// Constant-time-ish string compare (folds length into the result so it doesn't
+// early-return and leak the key length).
+function safeEqual(a: string, b: string): boolean {
+  let r = a.length ^ b.length;
+  const n = Math.max(a.length, b.length);
+  for (let i = 0; i < n; i++) r |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return r === 0;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
@@ -290,6 +302,24 @@ export default {
       }, null, 2), {
         headers: { 'Content-Type': 'application/json' }
       });
+    }
+
+    // ── Access gate ────────────────────────────────────────────────────────
+    // Everything past /health controls the device — the MCP transports (/sse,
+    // /mcp) AND the /api/* REST endpoints. When MCP_KEY is set, all of them
+    // require it: `Authorization: Bearer <key>` or `?k=<key>`/`?key=<key>`.
+    // Enforced ONLY when the secret is configured, so a fresh clone isn't locked
+    // out before you set it — but set it in production or your toy is open to
+    // anyone who learns the worker URL.
+    if (env.MCP_KEY) {
+      const authHeader = request.headers.get('Authorization');
+      const bearer = authHeader?.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+      const qk = url.searchParams.get('k') || url.searchParams.get('key') || '';
+      if (!safeEqual(bearer, env.MCP_KEY) && !safeEqual(qk, env.MCP_KEY)) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401, headers: { 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // SSE endpoint
